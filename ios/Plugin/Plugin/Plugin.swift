@@ -1,11 +1,11 @@
 import Foundation
 import Capacitor
-import FacebookCore
-import FacebookLogin
+import FBSDKCoreKit
+import FBSDKLoginKit
 
 @objc(FacebookLogin)
 public class FacebookLogin: CAPPlugin {
-    private let loginManager = LoginManager()
+    private let loginManager = FBSDKLoginManager()
     
     private let dateFormatter = ISO8601DateFormatter()
     
@@ -28,48 +28,40 @@ public class FacebookLogin: CAPPlugin {
             return;
         }
         
-        let perm = permissions.map { ReadPermission.custom($0) }
-        
         DispatchQueue.main.async {
-            self.loginManager.logOut()
-            self.loginManager.logIn(readPermissions: perm, viewController: self.bridge.viewController) { loginResult in
-                switch loginResult {
-                case .failed(let error):
+            self.loginManager.logInWithReadPermissions(["email"], fromViewController: self.bridge.viewController,
+             handler: {(loginResult, error: NSError) -> Void in
+                if error != nil {
                     print(error)
                     call.reject("LoginManager.logIn failed", error)
-                    
-                case .cancelled:
-                    print("User cancelled login")
-                    call.success()
-                    
-                case .success(let grantedPermissions, let declinedPermissions, let accessToken):
+                } else {
                     print("Logged in")
                     return self.getCurrentAccessToken(call)
                 }
-            }
+            })
         }
     }
-    
+        
     @objc func logout(_ call: CAPPluginCall) {
         loginManager.logOut()
         
         call.success()
     }
     
-    private func accessTokenToJson(_ accessToken: AccessToken) -> [String: Any?] {
+    private func accessTokenToJson(_ accessToken: FBSDKAccessToken) -> [String: Any?] {
         return [
-            "applicationId": accessToken.appId,
+            "applicationId": accessToken.appID,
             /*declinedPermissions: accessToken.declinedPermissions,*/
             "expires": dateToJS(accessToken.expirationDate),
             "lastRefresh": dateToJS(accessToken.refreshDate),
             /*permissions: accessToken.grantedPermissions,*/
-            "token": accessToken.authenticationToken,
-            "userId": accessToken.userId
+            "token": accessToken.tokenString,
+            "userId": accessToken.userID
         ]
     }
     
     @objc func getCurrentAccessToken(_ call: CAPPluginCall) {
-        guard let accessToken = AccessToken.current else {
+        guard let accessToken = FBSDKAccessToken.current() else {
             call.success()
             return
         }
