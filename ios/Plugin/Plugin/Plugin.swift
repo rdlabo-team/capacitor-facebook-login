@@ -28,14 +28,15 @@ public class FacebookLogin: CAPPlugin {
             return;
         }
         
+        print(permissions)
         DispatchQueue.main.async {
-            self.loginManager.logInWithReadPermissions(["email"], fromViewController: self.bridge.viewController,
-             handler: {(loginResult, error: NSError) -> Void in
+            self.loginManager.logOut()
+            self.loginManager.logIn(withReadPermissions: permissions, from: self.bridge.viewController, handler: { (loginResult, error) in
                 if error != nil {
                     print(error)
                     call.reject("LoginManager.logIn failed", error)
                 } else {
-                    print("Logged in")
+                    print(loginResult)
                     return self.getCurrentAccessToken(call)
                 }
             })
