@@ -1,3 +1,5 @@
+# This development is closed, and move to https://github.com/capacitor-community/facebook-login
+
 [![npm version](https://badge.fury.io/js/%40rdlabo%2Fcapacitor-facebook-login.svg)](https://badge.fury.io/js/%40rdlabo%2Fcapacitor-facebook-login)
 
 # capacitor-facebook-login
